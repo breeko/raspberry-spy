@@ -1,12 +1,11 @@
-# README #
+# Raspberry Spy #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Turn your Raspberry Pi into a way to take pictures at given intervals
 
 ### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* Raspberry Spy helps you take pictures throughout the day and upload them to Google Drive
+* 1.0
 
 ### How do I get set up? ###
 
