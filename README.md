@@ -8,6 +8,7 @@ Turn your Raspberry Pi into a way to take pictures at given intervals
 
 ### How do I get set up? ###
 Equipment:
+
 * [Raspberry Pi models 1, 2 or 3](https://www.raspberrypi.org/products/)
 
 * [Raspberry Pi power supply](https://www.raspberrypi.org/products/universal-power-supply/)
@@ -18,6 +19,7 @@ Equipment:
 
 
 Setup:
+
 * [Setup Raspberry Pi](https://www.raspberrypi.org/help/noobs-setup/)
 
 * [Install camera](https://www.raspberrypi.org/help/camera-module-setup/)
