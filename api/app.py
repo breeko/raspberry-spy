@@ -1,24 +1,11 @@
 #!flask/bin/python
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
+from camera import Camera
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
-
-tasks = [
-    {
-        'id': 1,
-        'title': u'Buy groceries',
-        'description': u'Milk, Cheese, Pizza, Fruit, Tylenol',
-        'done': False
-        },
-    {
-        'id': 2,
-        'title': u'Learn Python',
-        'description': u'Need to find a good Python tutorial on the web',
-        'done': False
-        }
-    ]
+camera = Camera()
 
 @auth.get_password
 def get_password(username):
@@ -30,58 +17,53 @@ def get_password(username):
 def unauthorized():
     return make_response(jsonify({'error': 'Unathorized access'}), 401)
 
-@app.route('/todo/api/v1.0/tasks',methods=['GET'])
-@auth.login_required
-def get_tasks():
-    return jsonify({'tasks': [make_public_task(task) for task in tasks]})
+@app.route('/todo/api/v1.0/actions',methods=['GET'])
+#@auth.login_required
+def get_actions():
+    return jsonify({'actions': [make_public_action(action) for action in camera.getActions()]})
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    task = [make_public_task(task) for task in tasks if task['id'] == task_id]
-    if len(task)==0:
+@app.route('/todo/api/v1.0/actions/<int:action_id>', methods=['GET'])
+def get_action(action_id):
+    action = camera.getActions(action_id)
+    if len(action)==0:
         abort(404)
-    return jsonify({'task':task[0]})
+    return jsonify({'actions':make_public_action(action[0])})
 
-@app.route('/todo/api/v1.0/tasks', methods=['POST'])
-def create_task():
-    if not request.json or not 'title' in request.json:
-        abort(400)
-    task = {
-        'id': tasks[-1]['id'] + 1,
-        'title': request.json['title'],
-        'description': request.json.get('description',''),
-        'done': False
-        }
-    tasks.append(task)
-    return jsonify({'task': task}), 201
+@app.route('/todo/api/v1.0/action', methods=['POST'])
+def create_action():
+    folder = request.json.get('folder',None)
+    time = request.json.get('time',None)
+    minutes = request.json.get('minutes',None)
+    action = camera.snapPicture(folder=folder, time=time,minutes=minutes)
+    return jsonify({'action': str(action)}), 201
+#
+#@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['PUT'])
+#def update_task(task_id):
+#    task = [task for task in tasks if task['id'] == task_id]
+#    if len(task)==0:
+#        abort(404)
+#    if not request.json:
+#        abort(400)
+#    if 'title' in request.json and type(request.json['title']) != unicode:
+#        abort(400)
+#    if 'description' in request.json and type(request.json['description']) is not unicode:
+#        abort(400)
+#    if 'done' in request.json and type(request.json['done']) is not bool:
+#        abort(400)
+#    task[0]['title'] = request.json.get('title', task[0]['title'])
+#    task[0]['description'] = request.json.get('description', task[0]['description'])
+#    task[0]['done'] = request.json.get('done',task[0]['done'])
+#    return jsonify({'task': task[0]})
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
-    task = [task for task in tasks if task['id'] == task_id]
-    if len(task)==0:
-        abort(404)
-    if not request.json:
-        abort(400)
-    if 'title' in request.json and type(request.json['title']) != unicode:
-        abort(400)
-    if 'description' in request.json and type(request.json['description']) is not unicode:
-        abort(400)
-    if 'done' in request.json and type(request.json['done']) is not bool:
-        abort(400)
-    task[0]['title'] = request.json.get('title', task[0]['title'])
-    task[0]['description'] = request.json.get('description', task[0]['description'])
-    task[0]['done'] = request.json.get('done',task[0]['done'])
-    return jsonify({'task': task[0]})
+#@app.route('/todo/api/v1.0/actions/<int:action_id>', methods=['DELETE'])
+#def delete_task(task_id):
+#    task = [task for task in tasks if task['id'] == task_id]
+#    if len(task)==0:
+#        abort(404)
+#    tasks.remove(task[0])
+#    return jsonify({'result': True})
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    task = [task for task in tasks if task['id'] == task_id]
-    if len(task)==0:
-        abort(404)
-    tasks.remove(task[0])
-    return jsonify({'result': True})
-
-def make_public_task(task):
+def make_public_action(task):
     new_task = {}
     for field in task:
         if field == 'id':
