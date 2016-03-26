@@ -18,7 +18,7 @@ Equipment:
 * [Raspberry Pi wifi dongle](http://www.amazon.com/Edimax-EW-7811Un-150Mbps-Raspberry-Supports/dp/B003MTTJOY/ref=sr_1_1?s=electronics&ie=UTF8&qid=1458780799&sr=1-1&keywords=raspberry+pi+wireless)
 
 
-### HTTP Methods ###:
+### HTTP Methods ###
 
 |HTTP   |Method                                                      |URI Action              |
 |:-----:|:----------------------------------------------------------:|:----------------------:|
