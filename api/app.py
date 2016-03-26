@@ -34,47 +34,53 @@ def create_action():
     folder = request.json.get('folder',None)
     time = request.json.get('time',None)
     minutes = request.json.get('minutes',None)
-    action = camera.snapPicture(folder=folder, time=time,minutes=minutes)
-    return jsonify({'action': str(action)}), 201
-#
-#@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['PUT'])
-#def update_task(task_id):
-#    task = [task for task in tasks if task['id'] == task_id]
-#    if len(task)==0:
-#        abort(404)
-#    if not request.json:
-#        abort(400)
-#    if 'title' in request.json and type(request.json['title']) != unicode:
-#        abort(400)
-#    if 'description' in request.json and type(request.json['description']) is not unicode:
-#        abort(400)
-#    if 'done' in request.json and type(request.json['done']) is not bool:
-#        abort(400)
-#    task[0]['title'] = request.json.get('title', task[0]['title'])
-#    task[0]['description'] = request.json.get('description', task[0]['description'])
-#    task[0]['done'] = request.json.get('done',task[0]['done'])
-#    return jsonify({'task': task[0]})
+    thread = camera.snapPicture(folder=folder, time=time, minutes=minutes)
+    action = camera.getActions(thread.threadID)
+    return jsonify({'action': make_public_action(action[0])}), 200
 
-#@app.route('/todo/api/v1.0/actions/<int:action_id>', methods=['DELETE'])
-#def delete_task(task_id):
-#    task = [task for task in tasks if task['id'] == task_id]
-#    if len(task)==0:
-#        abort(404)
-#    tasks.remove(task[0])
-#    return jsonify({'result': True})
+@app.route('/todo/api/v1.0/tasks/<int:action_id>', methods=['PUT'])
+def update_action(action_id):
+    actions = camera.getActions([action_id])
+    if len(actions)==0:
+        abort(404)
+    if not request.json:
+        abort(400)
+    if 'folder' in request.json and type(request.json['folder']) != unicode:
+        abort(400)
+    if 'time' in request.json and type(request.json['time']) is not unicode:
+        abort(400)
+    if 'minutes' in request.json and type(request.json['minutes']) is not int:
+        abort(400)
+    actions[0]['folder'] = request.json.get('folder', actions[0]['folder'])
+    actions[0]['time'] = request.json.get('time', actions[0]['time'])
+    actions[0]['minutes'] = request.json.get('minutes',actions[0]['minutes'])
+    return jsonify({'actions': actions[0]}), 200
 
-def make_public_action(task):
-    new_task = {}
-    for field in task:
+@app.route('/todo/api/v1.0/actions/<int:action_id>', methods=['DELETE'])
+def delete_task(action_id):
+    actions = camera.getActions(action_id)
+    if len(actions)==0:
+        abort(404)
+    camera.stopActions(action_id)
+    return jsonify({'actions':actions[0]}), 200
+
+def make_public_action(action):
+    new_action = {}
+    for field in action:
         if field == 'id':
-            new_task['uri'] = url_for('get_task', task_id=task['id'], _external=True)
+            new_action['uri'] = url_for('get_action', action_id=action['id'], _external=True)
         else:
-            new_task[field] = task[field]
-    return new_task
+            new_action[field] = action[field]
+    return new_action
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+@app.errorhandler(400)
+def bad_request(error):
+    return make_response(jsonify({'error': 'Bad request paramenters'}), 400)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -20,25 +20,25 @@ class Camera(object):
                 'id': thread.threadID,
                 'time': thread.time,
                 'minutes': thread.minutes,
-                'folder': thread.folder
+                'folder': thread.folder,
+                'active': thread.active
                 }
+            actions.append(action)
         return actions
 
-    def snapPicture(self, folder=None, time=None,minutes=None):
+    def snapPicture(self, folder=None, time=None, minutes=None):
         if folder is None:
             folder = self.folder
         thread = CameraThread(len(self.threads)+1, folder=folder, camera=self, time=time, minutes=minutes)
-        thread.run()
-        print "bop"
+        thread.start()
         self.threads.append(thread)
-        
         return thread
         
-    def removeThread(self, thread):
-        if thread in self.threads:
-            self.threads.remove(thread)
-            print 'removing thread %s' % thread.threadID
-        
+    def stopActions(self, actionIDs):
+        threadsToStop = [thread for thread in self.threads if thread.threadID == actionIDs]
+        for thread in threadsToStop:
+            thread.active = False
+    
     def __init__(self, folder='images'):
         self.folder = folder
         self.threads = []
@@ -54,7 +54,8 @@ class CameraThread(threading.Thread):
         self.minutes = minutes
         self.folder = folder
         self.camera = camera
-
+        self.active = True
+        
     def run(self):
         print "Starting " + self.name
         if self.time is None:
@@ -72,9 +73,13 @@ class CameraThread(threading.Thread):
             endTime = startTime + datetime.timedelta(seconds = secondsDiff)
 
             if dt < startTime or dt > endTime:
-                print "Inactive. Will resume at %s" % startTime
                 sleepTime = (startTime - dt).seconds + 1
-                sleep(sleepTime)
+                for second in range(sleepTime):
+                    if self.active:
+                        sleep(1)
+                    else:
+                        self.endThread()
+                        return
                 dt = datetime.datetime.now()
 
             # snap picture
@@ -86,8 +91,15 @@ class CameraThread(threading.Thread):
                 nextPicTime = dt + datetime.timedelta(minutes=self.minutes)
                 print "Next picture at: %s" % (nextPicTime)
                 sleepTime = (nextPicTime - datetime.datetime.now()).seconds
-                sleep(sleepTime)
+                for second in range(sleepTime):
+                    if self.active:
+                        sleep(1)
+                    else:
+                        self.endThread()
+                        return
             else:
-                break
-        self.camera.removeThread(self)
-        print "Exiting " + self.name
+                self.endThread()
+                return
+
+    def endThread(self):
+        self.camera.stopActions([self])
