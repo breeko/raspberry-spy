@@ -15,28 +15,15 @@ Equipment:
 
 * [Raspberry Pi camera](https://www.raspberrypi.org/products/camera-module/)
 
-* Optional: [Raspberry Pi wifi dongle](http://www.amazon.com/Edimax-EW-7811Un-150Mbps-Raspberry-Supports/dp/B003MTTJOY/ref=sr_1_1?s=electronics&ie=UTF8&qid=1458780799&sr=1-1&keywords=raspberry+pi+wireless)
+* [Raspberry Pi wifi dongle](http://www.amazon.com/Edimax-EW-7811Un-150Mbps-Raspberry-Supports/dp/B003MTTJOY/ref=sr_1_1?s=electronics&ie=UTF8&qid=1458780799&sr=1-1&keywords=raspberry+pi+wireless)
 
 
-Setup:
+### HTTP Methods ###:
 
-* [Setup Raspberry Pi](https://www.raspberrypi.org/help/noobs-setup/)
-
-* [Install camera](https://www.raspberrypi.org/help/camera-module-setup/)
-
-* Optional: [Google Drive account](https://www.google.com/drive/)
-
-* Download repo
-
-* Run python camera.py to snap picture saved to folder called 'images'
-
-
-Optional arguments:
-
-*  -f Folder to store pictures
-
-*  -m Frequency in minutes of pictures
-
-*  -t Time during which camera will be activated every day (e.g. 10:00-21:00)
-
-*  -u Whether to upload to Google Drive
+|HTTP   |Method                                                      |URI Action              |
+|:-----:|:----------------------------------------------------------:|:----------------------:|
+|GET    |http://[hostname]/raspberry-spy/api/v1.0/actions            |Retrieve list of actions|
+|GET    |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Retrieve an action      |
+|PUT    |http://[hostname]/raspberry-spy/api/v1.0/actions            |Add an action           |
+|DELETE |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Stop an action          |
+|UPDATE |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Update an action        |
