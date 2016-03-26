@@ -17,19 +17,19 @@ def get_password(username):
 def unauthorized():
     return make_response(jsonify({'error': 'Unathorized access'}), 401)
 
-@app.route('/todo/api/v1.0/actions',methods=['GET'])
+@app.route('/raspberry-spy/api/v1.0/actions',methods=['GET'])
 #@auth.login_required
 def get_actions():
     return jsonify({'actions': [make_public_action(action) for action in camera.getActions()]})
 
-@app.route('/todo/api/v1.0/actions/<int:action_id>', methods=['GET'])
+@app.route('/raspberry-spy/api/v1.0/actions/<int:action_id>', methods=['GET'])
 def get_action(action_id):
     action = camera.getActions(action_id)
     if len(action)==0:
         abort(404)
     return jsonify({'actions':make_public_action(action[0])})
 
-@app.route('/todo/api/v1.0/action', methods=['POST'])
+@app.route('/raspberry-spy/api/v1.0/action', methods=['POST'])
 def create_action():
     folder = request.json.get('folder',None)
     time = request.json.get('time',None)
@@ -38,7 +38,7 @@ def create_action():
     action = camera.getActions(thread.threadID)
     return jsonify({'action': make_public_action(action[0])}), 200
 
-@app.route('/todo/api/v1.0/tasks/<int:action_id>', methods=['PUT'])
+@app.route('/raspberry-spy/api/v1.0/tasks/<int:action_id>', methods=['PUT'])
 def update_action(action_id):
     actions = camera.getActions([action_id])
     if len(actions)==0:
@@ -56,7 +56,7 @@ def update_action(action_id):
     actions[0]['minutes'] = request.json.get('minutes',actions[0]['minutes'])
     return jsonify({'actions': actions[0]}), 200
 
-@app.route('/todo/api/v1.0/actions/<int:action_id>', methods=['DELETE'])
+@app.route('/raspberry-spy/api/v1.0/actions/<int:action_id>', methods=['DELETE'])
 def delete_task(action_id):
     actions = camera.getActions(action_id)
     if len(actions)==0:
