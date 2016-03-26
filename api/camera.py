@@ -21,7 +21,8 @@ class Camera(object):
                 'time': thread.time,
                 'minutes': thread.minutes,
                 'folder': thread.folder,
-                'active': thread.active
+                'active': thread.active,
+                'completed': thread.completed
                 }
             actions.append(action)
         return actions
@@ -55,6 +56,7 @@ class CameraThread(threading.Thread):
         self.folder = folder
         self.camera = camera
         self.active = True
+        self.completed = None
         
     def run(self):
         print "Starting " + self.name
@@ -103,3 +105,5 @@ class CameraThread(threading.Thread):
 
     def endThread(self):
         self.camera.stopActions([self])
+        self.active = False
+        self.completed = datetime.datetime.now()

@@ -24,6 +24,7 @@ Equipment:
 |:-----:|:----------------------------------------------------------:|:----------------------:|
 |GET    |http://[hostname]/raspberry-spy/api/v1.0/actions            |Retrieve list of actions|
 |GET    |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Retrieve an action      |
-|PUT    |http://[hostname]/raspberry-spy/api/v1.0/actions            |Add an action           |
+|POST   |http://[hostname]/raspberry-spy/api/v1.0/actions            |Create an action        |
+|PUT    |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Update an action        |
 |DELETE |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Stop an action          |
 |UPDATE |http://[hostname]/raspberry-spy/api/v1.0/actions/[action_id]|Update an action        |

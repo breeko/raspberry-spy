@@ -29,7 +29,7 @@ def get_action(action_id):
         abort(404)
     return jsonify({'actions':make_public_action(action[0])})
 
-@app.route('/raspberry-spy/api/v1.0/action', methods=['POST'])
+@app.route('/raspberry-spy/api/v1.0/actions', methods=['POST'])
 def create_action():
     folder = request.json.get('folder',None)
     time = request.json.get('time',None)
