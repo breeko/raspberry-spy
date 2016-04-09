@@ -22,6 +22,7 @@ class Camera(object):
                 'minutes': thread.minutes,
                 'folder': thread.folder,
                 'active': thread.active,
+                'started': thread.started,
                 'completed': thread.completed
                 }
             actions.append(action)
@@ -56,6 +57,7 @@ class CameraThread(threading.Thread):
         self.folder = folder
         self.camera = camera
         self.active = True
+        self.started = datetime.datetime.now()
         self.completed = None
         
     def run(self):
