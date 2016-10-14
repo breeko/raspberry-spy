@@ -1,111 +1,57 @@
-from math import ceil
-#import picamera
-import sys
-import argparse
-import datetime
-from time import strftime, sleep
-import threading
+from crontab import CronTab
+from subprocess import call
+from time import strftime
+from os import getcwd
+from random import randint
 
 class Camera(object):
-    
-    def capture(self, filename):
-        print "snap!"
-#        self.camera.capture(filename)
-    
-    def getActions(self, actionID=None):
-        actions = []
-        threads = [thread for thread in self.threads if actionID is None or thread.threadID == actionID]
-        for thread in threads:
-            action = {
-                'id': thread.threadID,
-                'time': thread.time,
-                'minutes': thread.minutes,
-                'folder': thread.folder,
-                'active': thread.active,
-                'started': thread.started,
-                'completed': thread.completed
-                }
-            actions.append(action)
-        return actions
+	comment_prefix = "raspberry-spy-"
 
-    def snapPicture(self, folder=None, time=None, minutes=None):
-        if folder is None:
-            folder = self.folder
-        thread = CameraThread(len(self.threads)+1, folder=folder, camera=self, time=time, minutes=minutes)
-        thread.start()
-        self.threads.append(thread)
-        return thread
-        
-    def stopActions(self, actionIDs):
-        threadsToStop = [thread for thread in self.threads if thread.threadID == actionIDs]
-        for thread in threadsToStop:
-            thread.active = False
-    
-    def __init__(self, folder='images'):
-        self.folder = folder
-        self.threads = []
-#        self.camera = picamera.PiCamera()
-#        self.camera.vflip = True
-#        self.camera.hflip = True
+	def __init__(self, flip_vertical=False, flip_horizontal=False, rotate=0):
+		self.flip_vertical = flip_vertical
+		self.flip_horizontal = flip_horizontal
+		self.rotate = rotate
 
-class CameraThread(threading.Thread):
-    def __init__(self, threadID, folder, camera, time=None, minutes=None):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.time = time
-        self.minutes = minutes
-        self.folder = folder
-        self.camera = camera
-        self.active = True
-        self.started = datetime.datetime.now()
-        self.completed = None
-        
-    def run(self):
-        print "Starting " + self.name
-        if self.time is None:
-            start = datetime.datetime.min
-            end = datetime.datetime.max 
-        else:
-            start, end = [datetime.datetime.strptime(t, "%H:%M") for t in self.time.split("-")]
+	def new_job(self, folder=None, minute=None, hour=None, month=None, day_of_month=None, day_of_week=None):
+		cron = CronTab(user=True)
+		fileName = "%s.jpg" % (strftime("%Y-%m-%d %I.%M.%S %pe"))
+		if folder is None:
+			folder = "images"
 
-        while True:
-            dt = datetime.datetime.now()
-            startTime = dt.replace(hour=start.hour,minute=start.minute,second=0,microsecond=0)
-            if startTime > dt:
-                startTime += datetime.timedelta(days =- 1)
-            secondsDiff = abs(min(end,start) - max(end,start)).seconds
-            endTime = startTime + datetime.timedelta(seconds = secondsDiff)
+		cmd = "raspistill -vf -hf -o %s/%s/$(date '+%%m-%%d-%%y_%%H:%%M:%%S').jpg" % (getcwd(), folder)
+		
+		if minute is None and hour is None and month is None and day_of_month is None and day_of_week is None:
+			call(cmd)
+			return None
+		else:
+			while True:
+				cron_id = '%04d' % randint(0,9999)
+				conflicting_cron_jobs = self.get_cron_job(cron_id)
+				if len(conflicting_cron_jobs) == 0: break
 
-            if dt < startTime or dt > endTime:
-                sleepTime = (startTime - dt).seconds + 1
-                for second in range(sleepTime):
-                    if self.active:
-                        sleep(1)
-                    else:
-                        self.endThread()
-                        return
-                dt = datetime.datetime.now()
+			job = cron.new(command=cmd,comment="%s%s" % (self.comment_prefix, cron_id))
 
-            # snap picture
-            fileName = "%s.jpg" % (strftime("%Y-%m-%d %I.%M.%S %p"))
-            self.camera.capture('%s/%s' % (self.folder,fileName))
+			if minute is None: minute = "*"
+			if hour is None: hour = "*"
+			if month is None: month = "*"
+			if day_of_month is None: day_of_month = "*"
+			if day_of_week is None: day_of_week = "*"
+			job.setall(minute, hour, day_of_month, month, day_of_week)
+			
+			cron.write()
+			return job
 
-            if self.minutes is not None:
-                # repeat
-                nextPicTime = dt + datetime.timedelta(minutes=self.minutes)
-                print "Next picture at: %s" % (nextPicTime)
-                sleepTime = (nextPicTime - datetime.datetime.now()).seconds
-                for second in range(sleepTime):
-                    if self.active:
-                        sleep(1)
-                    else:
-                        self.endThread()
-                        return
-            else:
-                self.endThread()
-                return
+	def delete_job(self, cron_id=None):
+		cron = CronTab(user=True)
+		jobs = self.get_cron_job(cron_id, cron=cron)
+		for job in jobs:
+			cron.remove(job)
+		cron.write()
+		return jobs
 
-    def endThread(self):
-        self.camera.stopActions([self])
-        self.active = False
-        self.completed = datetime.datetime.now()
+	def get_cron_job(self, cron_id=None, cron = None):
+		if cron is None:
+			cron = CronTab(user=True)
+		if cron_id is None:
+			return [job for job in cron.find_command("raspistill")]
+		return [job for job in cron.find_comment("%s%s" % (self.comment_prefix, cron_id))]
