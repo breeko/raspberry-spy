@@ -1,6 +1,7 @@
 .DS_Store
 .AppleDouble
 .LSOverride
+camera-alt.py
 *.pyc
 
 # Icon must end with two \r
